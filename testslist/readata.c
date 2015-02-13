@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
 	while(!feof(fp))
 	{
 		memset(buf, 0, sizeof(buf));
-		fread(buf, 1, sizeof(buf), fp);
+		fread(buf, sizeof(buf), 1,fp);
 		slist *tmp = (slist *)malloc(sizeof(slist));
 		assign_node(tmp, buf, sizeof(buf));
 		if(head == NULL)

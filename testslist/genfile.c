@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 	{
 		memset(buf, '\n', sizeof(buf));
 		memset(buf, i+'0', sizeof(buf)-1);
-		fwrite(buf, 1, sizeof(buf), fp);
+		fwrite(buf, sizeof(buf),1, fp);
 		_dump_info(MODNAME, INFO,"%s", buf);
 	}	
 	fclose(fp);
