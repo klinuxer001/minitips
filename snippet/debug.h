@@ -13,6 +13,8 @@
 #ifndef DEBUG_H_
 #define DEBUG_H_
 
+#define LOGDEBUG
+
 #ifdef	LOGDEBUG
 #define	LOGFILE	"rtx.log"
 #define	FATAL	"FATAL"
