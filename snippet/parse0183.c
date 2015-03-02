@@ -79,12 +79,15 @@ int parse_sentence(const char *sentence, char *format, ...)
 				*va_arg(ap, char *) = *field;
 			}
 			break;
-			case 'D':
+			case 'D':	//format is:DDMMYY
 			{
 				struct nmea_date *rcvdate = va_arg(ap, struct nmea_date *);
 				int day = strtol((char []){field[0],field[1],'\0'}, NULL, 10);
+//				int day = strtol((char *){field[0],field[1],'\0'}, NULL, 10);	//will coredump
 				int mon = strtol((char []){field[2],field[3],'\0'}, NULL, 10);
+//				int mon = strtol((char *){field[2],field[3],'\0'}, NULL, 10);	//will coredump
 				int year = strtol((char []){field[4],field[5],'\0'}, NULL, 10);
+//				int year = strtol((char *){field[4],field[5],'\0'}, NULL, 10);	//will coredump
 				
 				rcvdate->day = day;
 				rcvdate->mon = mon;
