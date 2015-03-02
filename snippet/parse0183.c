@@ -13,6 +13,31 @@ struct nmea_date {
 	int year;
 };
 
+int checksum_sentence(const char *sentence)
+{
+	const char *tmp = sentence;
+	char *pos = strrchr(tmp, '*');
+	int cs = strtol((char []){pos[1], pos[2], '\0'}, NULL, 10);
+	int sum = 0;
+		
+	if(*tmp!= '$')
+	{
+		return -1;
+	}
+	tmp++;
+	while(*tmp!= '*')
+	{
+		sum ^= *tmp;
+		tmp++;
+	}
+	printf("sentence:%s, calcsum=%d, orignalsum=%d\n", sentence, sum, cs);	//for debug
+	if(cs != sum)
+	{
+		return -1;
+	}
+	return 0;	
+}
+
 /**
   *@param	sentence:输入参数，GPS接收的报文行
   *@param	format:输入参数，具体如下：
@@ -114,7 +139,9 @@ int main(int argc, char *argv[])
 	char buf[10] = { 0 };
 	char c;
 	struct nmea_date date;
-	parse_sentence("$GPRMC,123,4.5,A,310115", "tifcD", buf, &val, &df, &c, &date);
+	char *sentence = "$GPRMC,123,4.5,A,310115*18";
+	checksum_sentence(sentence);
+	parse_sentence(sentence, "tifcD", buf, &val, &df, &c, &date);
 	printf("%s, %d, %f, %c, %d, %d, %d\n", buf, val, df, c, date.year, date.mon, date.day);
 	return 0;
 }
