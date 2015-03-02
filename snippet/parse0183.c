@@ -119,6 +119,8 @@ int parse_sentence(const char *sentence, char *format, ...)
 				rcvdate->year = year;
 			}
 			break;
+			case ';':
+				continue;
 			default:
 				result = -1;
 				goto parse_sentence_error;
@@ -134,14 +136,13 @@ parse_sentence_error:
 
 int main(int argc, char *argv[])
 {
-	int val = 0;
+	int val, val2;
 	double df = 0.0;
-	char buf[10] = { 0 };
-	char c;
+	char c, buf[10] = { 0 };
 	struct nmea_date date;
-	char *sentence = "$GPRMC,123,4.5,A,310115*18";
+	char *sentence = "$GPRMC,123,4.5,A,310115,12*18";
 	checksum_sentence(sentence);
-	parse_sentence(sentence, "tifcD", buf, &val, &df, &c, &date);
-	printf("%s, %d, %f, %c, %d, %d, %d\n", buf, val, df, c, date.year, date.mon, date.day);
+	parse_sentence(sentence, "tifcD;i", buf, &val, &df, &c, &date, &val2);
+	printf("%s, %d, %f, %c, %d, %d, %d, %d\n", buf, val, df, c, date.year, date.mon, date.day, val2);
 	return 0;
 }
