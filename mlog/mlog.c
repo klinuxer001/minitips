@@ -11,9 +11,7 @@
 
 #include "mlog.h"
 
-// Used for printing from within the logger. Prints if debug level is MLOG_DEBUG or higher
 #define MLOG_LOGGER  4
-// Used for printing stack trace. Prints if debug level is MLOG_DEBUG or higher
 #define MLOG_TRACE   5
 
 // Define colors for printing to terminal
@@ -28,10 +26,10 @@ static char* COL_LOGGER  = "\x1B[90m";  // Dark Grey
 static char* COL_TRACE   = "\x1B[95m";  // Light Magenta
 
 // Logger settings constants
-static int  dbgLevel        = MLOG_DEBUG;    // Default Logging level
+static int  dbgLevel        = MLOG_DEBUG;    	// Default Logging level
 static char logFile[255]    = "default.log";    // Default log file name
-static unsigned char silentMode      = 0;            // Default silent mode setting
-static unsigned char lineWrap        = 1;             // Default setting for line wrapping
+static unsigned char silentMode      = 0;		// Default silent mode setting
+static unsigned char lineWrap        = 1;		// Default setting for line wrapping
 
 // Private function prototypes
 static char* getDateString();
@@ -76,26 +74,18 @@ void writeLog( int loglvl, const char* str, ... ) {
 
     char* date = getDateString();
 
-    // Calculate total size of the string
     int stringSize = strlen( date ) + strlen( va_msg ) + 10;
-    // Calculate space used by line wraps
     int lineWrapSize = 0;
-    // Only increase message allocation size if line wrapping is enabled
     if( lineWrap ) {
         lineWrapSize = ( 32 * ( stringSize / 80 ) );
     }
     
-    // Calculate the total message size
     int msgSize = stringSize + lineWrapSize + strlen( strerror( errno ) ) + 50;  // 50 char buffer to prevent overflow
 
-    // Allocate message variable
     char* msg = (char*)malloc( msgSize );
 
-    // Used to hold the current printing color, default to 'Normal'
-    char *outColor = COL_NORM;
+    char *outColor = COL_NORM;	//default outcolor
 
-
-    // Prepare message based on logging level and debug level
     if( loglvl < MLOG_INFO ){
         if( loglvl == MLOG_FATAL ) {
             outColor = COL_FATAL;
@@ -120,9 +110,7 @@ void writeLog( int loglvl, const char* str, ... ) {
             memset( dateLengthSpacing, ' ', strlen( date ) + 1 );
             sprintf( msg + strlen( msg), "%s\terrno : %s\n", dateLengthSpacing, strerror( errno ) );
         }
-        // Write message to log
         write( log, msg, strlen( msg ) );
-        // Write message to standard error too
         if( !silentMode ) {
             write( STDERR_FILENO, outColor, strlen( outColor ) );
             write( STDERR_FILENO, msg, strlen( msg ) );
@@ -171,9 +159,7 @@ void writeLog( int loglvl, const char* str, ... ) {
                 wrapLines( msg, msgSize );
             }
 
-            // Write message to log
             write( log, msg, strlen( msg ) );
-            // Write message to standard out too
             if( !silentMode ) {
                 write( STDOUT_FILENO, outColor, strlen( outColor ) );
                 write( STDOUT_FILENO, msg, strlen( msg ) );
@@ -185,22 +171,17 @@ void writeLog( int loglvl, const char* str, ... ) {
     write( STDOUT_FILENO, COL_NORM, strlen( COL_NORM ) );
     write( STDERR_FILENO, COL_NORM, strlen( COL_NORM ) );
 
-    // free args list
     va_end( args );
 
-    // close file
     close( log );
 
-    // free other variables
     free( date );
     free( msg );
     free( va_msg );
 
     // Check if the output was truncated
     if( va_string_size > ( strlen( str ) + max_va_list_size ) ) {
-        // get how many bytes the output was truncated by
         int truncated_size = va_string_size - ( strlen( str ) + max_va_list_size );
-        // output message notifying the user of truncation and amount
         writeLog( MLOG_LOGGER, "Previous message truncated by %d bytes to fit into buffer", truncated_size );
     }
 }
@@ -212,12 +193,9 @@ void writeLog( int loglvl, const char* str, ... ) {
     Set to a max of 15 lines of the stacktrace for output.
 */
 void writeStackTrace() {
-    // max lines in backtrace
     static const int max_backtrace_size = 15;
 
-    // holds addresses for backtrace functions
     void* backtrace_addresses[max_backtrace_size];
-    // size of backtrace
     size_t backtrace_size = backtrace( backtrace_addresses, max_backtrace_size );
 
     // used to know if pretty backtrace was returned
@@ -254,7 +232,6 @@ void writeStackTrace() {
     // contstructing the message. starting at index 1 to omit this call
 	int i;
     for( i = 1; i < backtrace_size; i++ ) {
-        // length of the current string
         int string_length = strlen( backtrace_strings[i] );
 
         // ensure the message buffer is not overflowed
@@ -267,7 +244,6 @@ void writeStackTrace() {
             break;
         }
 
-        // copy the current string into the message
         strncpy( message + offset, backtrace_strings[i], string_length );
         offset += string_length;
 
@@ -290,16 +266,12 @@ void writeStackTrace() {
         message[offset] = 0;
     }
 
-    // write the final message to the logs
     writeLog( MLOG_TRACE, "%s", message );
 
-    // free message and backtrace variables
     free( message );
     free( indentedLineSpacing );
 
-    // free backtrace strings
     if( freePrettyBacktrace ) {
-		int i;
         for( i = 0; i < backtrace_size; i++ ) {
             free( backtrace_strings[i] );
         }
@@ -325,8 +297,7 @@ void setLogDebugLevel( int level ) {
          dbgLevel = level;
          writeLog( MLOG_LOGGER, "Debug level set to %d", level );
     } else {
-        // set to default debug level
-        dbgLevel = MLOG_DEBUG;
+        dbgLevel = MLOG_DEBUG; // set to default debug level
 
         // used to ensure consistent alignment between terminal and log file
         char* indentedLineSpacing = (char*)malloc( 32 );
@@ -569,10 +540,10 @@ static char* getDateString() {
     Returns a a list of strings describing the backtrace addresses. This list
     must be freed by the caller.  On error, NULL is returned.
 */
-static char** getPrettyBacktrace( void* addresses[], int array_size ) {
-    // Used to return the strings generated from the addresses
-    char** backtrace_strings = (char**)malloc( sizeof( char* ) * array_size );
+static char** getPrettyBacktrace( void* addresses[], int array_size ) 
+{
 	int i;
+    char** backtrace_strings = (char**)malloc( sizeof( char* ) * array_size );
     for( i = 0; i < array_size; i ++ ) {
         backtrace_strings[i] = (char*)malloc( sizeof( char ) * 255 );
     }
@@ -581,8 +552,7 @@ static char** getPrettyBacktrace( void* addresses[], int array_size ) {
     int max_command_string_size = max_path_size + 255;
 
     // Will hold the command to be used (max size of path + 255)
-    char command_string[max_command_string_size]
-;   // set to the maximum possible path size
+    char command_string[max_command_string_size];
     char exe_path[max_path_size];
 
     // Used to check if an error occured while setting up command
@@ -590,19 +560,18 @@ static char** getPrettyBacktrace( void* addresses[], int array_size ) {
 
     // Check if we are running on Mac OS or not, and select appropriate command
     const char* command;
-        // Check if 'addr2line' function is available, if not exit
-        if( !system( "which addr2line > /dev/null 2>&1" ) ) {
-            command = "addr2line -Cfispe";
-            int path_length = readlink( "/proc/self/exe", exe_path, sizeof( exe_path ) );
-            if(  path_length <= 0 ) {
-                writeLog( MLOG_LOGGER, "Unable to get execution path. Defaulting to standard backtrace." );
-                error = 1;
-            }
-            exe_path[path_length] = 0;
-        } else {
-            writeLog( MLOG_LOGGER, "Function 'addr2line' unavailable. Defaulting to standard backtrace. Please install package 'binutils' for better stacktrace output." );
-            error = 1;
-        }
+	if( !system( "which addr2line > /dev/null 2>&1" ) ) {
+		command = "addr2line -Cfispe";
+		int path_length = readlink( "/proc/self/exe", exe_path, sizeof( exe_path ) );
+		if(  path_length <= 0 ) {
+			writeLog( MLOG_LOGGER, "Unable to get execution path. Defaulting to standard backtrace." );
+			error = 1;
+		}
+		exe_path[path_length] = 0;
+	} else {
+		writeLog( MLOG_LOGGER, "Function 'addr2line' unavailable. Defaulting to standard backtrace. Please install package 'binutils' for better stacktrace output." );
+		error = 1;
+	}
 
     // If an error occured, exit now
     if( error ) {
@@ -618,7 +587,6 @@ static char** getPrettyBacktrace( void* addresses[], int array_size ) {
 
     // Evaluate all addresses
     for( i = 0; i < array_size; i++ ) {
-        // Compose the complete command to execute
         sprintf( command_string, "%s \"%s\" %X 2>/dev/null", command, exe_path, (unsigned int)(uintptr_t)addresses[i] );
 
         FILE* line = popen( command_string, "r" );
