@@ -6,7 +6,6 @@
 #include <string.h>
 #include <fcntl.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <execinfo.h>
 #include <stdint.h>
 
@@ -31,8 +30,8 @@ static char* COL_TRACE   = "\x1B[95m";  // Light Magenta
 // Logger settings constants
 static int  dbgLevel        = MLOG_DEBUG;    // Default Logging level
 static char logFile[255]    = "default.log";    // Default log file name
-static bool silentMode      = false;            // Default silent mode setting
-static bool lineWrap        = true;             // Default setting for line wrapping
+static unsigned char silentMode      = 0;            // Default silent mode setting
+static unsigned char lineWrap        = 1;             // Default setting for line wrapping
 
 // Private function prototypes
 static char* getDateString();
@@ -130,9 +129,9 @@ void writeLog( int loglvl, const char* str, ... ) {
         }
     } else {
         // Used to check if a valid combination of log level and debug level exists
-        bool valid = true;
+        unsigned char valid = 1;
         // Used to check if we should try wrapping lines or not
-        bool wrap  = true;
+        unsigned char wrap  = 1;
 
         // Check loglvl/dbgLevel and add appropriate name to message
         if( loglvl == MLOG_INFO ) {
@@ -151,15 +150,15 @@ void writeLog( int loglvl, const char* str, ... ) {
             outColor = COL_LOGGER;
             sprintf( msg, "%s\tLOG   : ", date );
             // Internal logger messages should appear as they are. Don't wrap
-            wrap = false;
+            wrap = 0;
         } else if( loglvl == MLOG_TRACE && dbgLevel >= MLOG_DEBUG ) {
             outColor = COL_TRACE;
             sprintf( msg, "%s\tTRACE : ", date );
             // Traces are pre-formatted.  Don't attempt to wrap the lines
-            wrap = false;
+            wrap = 0;
         } else {
             // Don't print anything
-            valid = false;
+            valid = 0;
         }
 
         // Only print if there is a valid match of log level and debug level
@@ -222,13 +221,13 @@ void writeStackTrace() {
     size_t backtrace_size = backtrace( backtrace_addresses, max_backtrace_size );
 
     // used to know if pretty backtrace was returned
-    bool freePrettyBacktrace = true;
+    unsigned char freePrettyBacktrace = 1;
 
     // string descriptions of each backtrace address
     char** backtrace_strings = getPrettyBacktrace( backtrace_addresses, backtrace_size );
     if( backtrace_strings == NULL ) {
         backtrace_strings = backtrace_symbols( backtrace_addresses, backtrace_size );
-        freePrettyBacktrace = false;
+        freePrettyBacktrace = 0;
     }
     // Clear errno
     // It is possible errno is set to a value we don't care about by 'backtrace_symbols'
@@ -368,9 +367,9 @@ void setLogFile( const char* file ) {
     Log output will continue normally.
 
     Input:
-    bool silent - Desired state of silent mode: false = Disabled (default), true = Enabled
+    unsigned char silent - Desired state of silent mode: false = Disabled (default), true = Enabled
 */
-void setLogSilentMode( bool silent ) {
+void setLogSilentMode( unsigned char silent ) {
     silentMode = silent;
     writeLog( MLOG_LOGGER, "Silent mode %s", silent ? "enabled" : "disabled" );
 }
@@ -381,9 +380,9 @@ void setLogSilentMode( bool silent ) {
     wrapped multiple times so that each line is below 80 characters.
 
     Input:
-    bool wrap - Desired state of line wrapping: true = Enabled (default), false = Disabled
+    unsigned char wrap - Desired state of line wrapping: true = Enabled (default), false = Disabled
 */
-void setLineWrap( bool wrap ) {
+void setLineWrap( unsigned char wrap ) {
     lineWrap = wrap;
     writeLog( MLOG_LOGGER, "Line wrapping %s", wrap ? "enabled" : "disabled" );
 }
@@ -434,9 +433,9 @@ void flushLog() {
 */
 void loadConfig( const char* config ) {
     // Settings variables (set to default values)
-    bool silentSetting      = silentMode;
-    bool lineWrapSetting    = lineWrap;
-    bool flushSetting       = false;
+    unsigned char silentSetting      = silentMode;
+    unsigned char lineWrapSetting    = lineWrap;
+    unsigned char flushSetting       = 0;
     int debugLevelSetting   = dbgLevel;
     char logfileSetting[255];
     strcpy( logfileSetting, logFile );
@@ -496,21 +495,21 @@ void loadConfig( const char* config ) {
             strncpy( var, settingsBuffer + startL, splitL - startL - 1 );
             strncpy( val, settingsBuffer + splitL, endL - splitL );
 
-            // Parse the value if it is a boolean
-            bool boolVal;
+            // Parse the value if it is a unsigned charean
+            unsigned char boolval;
             if( strcmp( val, "true" ) == 0 ) {
-                boolVal = true;
+                boolval = 1;
             } else if( strcmp( val, "false" ) == 0 ) {
-                boolVal = false;
+                boolval = 0;
             }
 
             // Parse the settings variables
             if( strcmp( var, "silent" ) == 0 ) {
-                silentSetting = boolVal;
+                silentSetting = boolval;
             } else if( strcmp( var, "flush" ) == 0 ) {
-                flushSetting = boolVal;
+                flushSetting = boolval;
             } else if( strcmp( var, "wrap" ) == 0 ) {
-                lineWrapSetting = boolVal;
+                lineWrapSetting = boolval;
             } else if( strcmp( var, "debug" ) == 0 ) {
                 debugLevelSetting = atoi( val );
             } else if( strcmp( var, "logfile" ) == 0 ) {
@@ -587,7 +586,7 @@ static char** getPrettyBacktrace( void* addresses[], int array_size ) {
     char exe_path[max_path_size];
 
     // Used to check if an error occured while setting up command
-    bool error = false;
+    unsigned char error = 0;
 
     // Check if we are running on Mac OS or not, and select appropriate command
     const char* command;
@@ -597,12 +596,12 @@ static char** getPrettyBacktrace( void* addresses[], int array_size ) {
             int path_length = readlink( "/proc/self/exe", exe_path, sizeof( exe_path ) );
             if(  path_length <= 0 ) {
                 writeLog( MLOG_LOGGER, "Unable to get execution path. Defaulting to standard backtrace." );
-                error = true;
+                error = 1;
             }
             exe_path[path_length] = 0;
         } else {
             writeLog( MLOG_LOGGER, "Function 'addr2line' unavailable. Defaulting to standard backtrace. Please install package 'binutils' for better stacktrace output." );
-            error = true;
+            error = 1;
         }
 
     // If an error occured, exit now
@@ -615,7 +614,7 @@ static char** getPrettyBacktrace( void* addresses[], int array_size ) {
     }
 
     // Used to check if the addresses were successfully evaluated
-    bool address_evaluation_successful = false;
+    unsigned char address_evaluation_successful = 0;
 
     // Evaluate all addresses
     for( i = 0; i < array_size; i++ ) {
@@ -648,7 +647,7 @@ static char** getPrettyBacktrace( void* addresses[], int array_size ) {
 
         // If any addresses are able to be evaluated, we consider it a success
         if( strcmp( backtrace_strings[i], "??" ) != 0 && strcmp( backtrace_strings[i], "?? ??:0" ) != 0 ) {
-            address_evaluation_successful = true;
+            address_evaluation_successful = 1;
         }
 
         pclose( line );

@@ -1,8 +1,6 @@
 #ifndef MLOG_H
 #define MLOG_H
 
-#include <stdbool.h>
-
 // Define logging levels
 #define MLOG_FATAL    -2    // A fatal error has occured: program will exit immediately
 #define MLOG_ERROR    -1    // An error has occured: program may not exit
@@ -16,8 +14,8 @@ typedef struct {
     void ( *const writeStackTrace )( void );
     void ( *const setLogDebugLevel )( int level );
     void ( *const setLogFile )( const char* file );
-    void ( *const setLogSilentMode )( bool silent );
-    void ( *const setLineWrap )( bool wrap );
+    void ( *const setLogSilentMode )( unsigned char silent );
+    void ( *const setLineWrap )( unsigned char wrap );
     void ( *const flushLog )( void );
     void ( *const loadConfig )( const char* config );
 } mlog_namespace;
