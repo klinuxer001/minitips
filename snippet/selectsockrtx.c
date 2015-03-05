@@ -1,10 +1,17 @@
+/**
+  *@file	selectsockrtx.c
+  *@brief	socket通讯之select模型
+  *@notice 	参考点为_sock结构的封装
+  *@date	2015-
+  *@author	klinuxer001
+  */
 #include "common.h"
 
 typedef	struct _sock 
 {
 	int sock;
 	struct sockaddr_in addr;
-#define	BACKLOG_NUM	10
+#define	BACKLOG	10
 	uint32_t (*getipaddr)(struct sockaddr_in addr);
 	int (*listen)(int sock, int backlog);
 	int (*bind)(int sock, struct sockaddr_in *addr);
@@ -29,7 +36,7 @@ uint32_t sgetipaddr(struct sockaddr_in addr)
 
 int slisten(int sock, int backlog)
 {
-	int num = backlog > 128 ?BACKLOG_NUM:backlog;
+	int num = backlog > 128 ? BACKLOG:backlog;
 	return listen(sock, num);
 }
 
@@ -165,7 +172,7 @@ int init_tcplink(unsigned short port, const char *ipaddr)
 	set_globe_val(&gsock_tcp, in);
 	
 	gsock_tcp.bind(gsock_tcp.sock, &(gsock_tcp.addr));	
-	gsock_tcp.listen(gsock_tcp.sock, BACKLOG_NUM);
+	gsock_tcp.listen(gsock_tcp.sock, BACKLOG);
 
 	return 0;
 }
