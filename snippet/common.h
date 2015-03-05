@@ -8,7 +8,7 @@
 #define	COMMON_H_
 
 #define SUCCESS  1
-#define FAILURE	 -1 
+#define FAILURE	 0 
 
 #include <stdio.h>
 #include <unistd.h>
@@ -24,6 +24,7 @@
 #include <sys/select.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <sys/epoll.h>
 #include <termios.h>
 #include <fcntl.h>
 #include <errno.h>
