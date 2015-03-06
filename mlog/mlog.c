@@ -1,3 +1,8 @@
+/**
+  *@file	mlog.c
+  *@brief	日志系统实现
+  *@date	2015-1-1
+  */
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
