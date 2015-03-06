@@ -1,3 +1,0 @@
-要使用CUnit，必须安装libcunit-dev库
-
-在编译时要加上-lcunit
