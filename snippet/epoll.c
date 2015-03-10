@@ -1,5 +1,6 @@
 /**
-  *
+  *@file epoll.c
+  *@brief	socket通信之epoll模型示例
   *
   */
 #include "common.h"
@@ -43,9 +44,9 @@ int epoll_add_fd(int fd, int flag)
 
 void setnonblocking(int fd)
 {
-	int opt = fcntl(fd, F_GETFD);
+	int opt = fcntl(fd, F_GETFL);
 	opt |= O_NONBLOCK;
-	fcntl(fd, F_SETFD, opt);
+	fcntl(fd, F_SETFL, opt);
 }
 
 void handler(int sig)

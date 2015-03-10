@@ -4,7 +4,7 @@ CC=gcc
 SRC=test.c mlog.c
 
 test:
-	$(CC) -g -o $@ $(SRC)
+	$(CC) -g -o $@ $(SRC) -rdynamic
 
 clean:
 	rm -f test
